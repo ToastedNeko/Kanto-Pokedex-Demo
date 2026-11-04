@@ -5,8 +5,6 @@
 
 package com.puggles.pokedexdemo
 
-import android.R.attr.text
-import android.system.Os.stat
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -28,10 +26,8 @@ fun PokemonDetailScreen(pokemonId: Int) {
     LaunchedEffect(pokemonId) {
         scope.launch {
             try {
-                val api = Retrofit.Builder()
-                    .baseUrl("https://pokeapi.co/api/v2/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
+                val api = Retrofit.Builder().baseUrl("https://pokeapi.co/api/v2/")
+                    .addConverterFactory(GsonConverterFactory.create()).build()
                     .create(PokemonApi::class.java)
                 detail = api.getPokemonDetail(pokemonId)
             } catch (e: Exception) {
@@ -56,8 +52,7 @@ fun PokemonDetailScreen(pokemonId: Int) {
             Text(
                 text = "#${
                     p.id.toString().padStart(3, '0')
-                } ${p.name.replaceFirstChar { it.uppercase() }}",
-                fontSize = 24.sp
+                } ${p.name.replaceFirstChar { it.uppercase() }}", fontSize = 24.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Types: ${p.types.joinToString(" / ") { it.type.name.replaceFirstChar { c -> c.uppercase() } }}")// Height: API gives decimeters → feet and inches
@@ -75,7 +70,7 @@ fun PokemonDetailScreen(pokemonId: Int) {
             }
         }
     } else {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Failed to load details")
         }
     }

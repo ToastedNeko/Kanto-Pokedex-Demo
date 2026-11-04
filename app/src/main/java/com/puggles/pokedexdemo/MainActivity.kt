@@ -27,8 +27,10 @@ import androidx.navigation.compose.rememberNavController
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Button
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.io.BufferedReader
@@ -52,14 +54,13 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("list") {
                             PokemonListScreen(
-                                viewModel = viewModel,
-                                onPokemonClick = { id ->
+                                viewModel = viewModel, onPokemonClick = { id ->
                                     navController.navigate("detail/$id")
-                                }
-                            )
+                                })
                         }
                         composable("detail/{pokemonId}") { backStackEntry ->
-                            val pokemonId = backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull() ?: 1
+                            val pokemonId =
+                                backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull() ?: 1
                             PokemonDetailScreen(pokemonId = pokemonId)
                         }
                     }
@@ -71,39 +72,88 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun PokemonListScreen(
-    viewModel: PokemonViewModel,
-    onPokemonClick: (Int) -> Unit
+    viewModel: PokemonViewModel, onPokemonClick: (Int) -> Unit
 ) {
     val pokemonList = viewModel.pokemonList.collectAsState().value
+    val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(pokemonList) { pokemon ->
-            PokemonItem(
-                pokemon = pokemon,
-                onToggleCaught = { viewModel.toggleCaught(pokemon.id) },
-                onClick = { onPokemonClick(pokemon.id) }   // ← NEW
-            )
+    // launcher that opens the file picker when the user taps Import
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            scope.launch {
+                val ids = mutableSetOf<Int>()
+                // open the file the user selected and read its text
+                context.contentResolver.openInputStream(it)?.use { stream ->
+                    BufferedReader(InputStreamReader(stream)).use { reader ->
+                        val json = reader.readText()
+                        val array = JSONArray(json)
+                        // convert the JSON array (e.g. [1,4,7,25]) into a Set of Ints
+                        for (i in 0 until array.length()) {
+                            ids.add(array.getInt(i))
+                        }
+                    }
+                }
+                // tell the ViewModel to update caught status to match the imported IDs
+                viewModel.importCaught(ids)
+            }
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // export button: turns currently caught Pokémon into a shareable JSON string
+            Button(onClick = {
+                val caughtIds = pokemonList.filter { it.isCaught }.map { it.id }
+                val json = JSONArray(caughtIds).toString()
+                val sendIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, json)
+                    type = "text/plain"
+                }
+                context.startActivity(Intent.createChooser(sendIntent, "Export Caught Pokémon"))
+            }) {
+                Text("Export")
+            }
+            // import button: opens the file picker
+            Button(onClick = { importLauncher.launch("*/*") }) {
+                Text("Import")
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(pokemonList) { pokemon ->
+                PokemonItem(
+                    pokemon = pokemon,
+                    onToggleCaught = { viewModel.toggleCaught(pokemon.id) },
+                    onClick = { onPokemonClick(pokemon.id) })
+            }
         }
     }
 }
 
 @Composable
 fun PokemonItem(
-    pokemon: Pokemon, onToggleCaught: () -> Unit,
-    onClick: () -> Unit
+    pokemon: Pokemon, onToggleCaught: () -> Unit, onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }   // ← NEW
-            .padding(vertical = 8.dp),
+        .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+        horizontalArrangement = Arrangement.SpaceBetween) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "#${pokemon.id.toString().padStart(3, '0')}  ${pokemon.name}",

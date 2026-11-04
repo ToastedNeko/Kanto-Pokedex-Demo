@@ -1,8 +1,5 @@
-
-
 package com.puggles.pokedexdemo
 
-import /**/androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +10,15 @@ import retrofit2.converter.gson.GsonConverterFactory
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.flow.first
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
+import org.json.JSONArray
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 data class Pokemon(
     val id: Int,
@@ -26,6 +32,7 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
     val pokemonList: StateFlow<List<Pokemon>> = _pokemonList.asStateFlow()
     private val preferences = CaughtPreferences(application)
 
+    // retrieve the list of Pokemon from PokeApi
     private val api: PokemonApi = Retrofit.Builder()
         .baseUrl("https://pokeapi.co/api/v2/")
         .addConverterFactory(GsonConverterFactory.create())
@@ -36,6 +43,7 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
         loadPokemon()
     }
 
+    // load each Pokemon from the game selected
     private fun loadPokemon() {
         viewModelScope.launch {
             try {
@@ -56,6 +64,7 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    // show or hide caught pokemon state
     fun toggleCaught(pokemonId: Int) {
         viewModelScope.launch {
             preferences.toggleCaught(pokemonId)
@@ -65,6 +74,24 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
                 } else {
                     pokemon
                 }
+            }
+        }
+    }
+
+    fun importCaught(ids: Set<Int>) {
+        viewModelScope.launch {
+            // IDs that are currently marked caught in the app
+            val current = _pokemonList.value.filter { it.isCaught }.map { it.id }.toSet()
+            // IDs we need to un-catch (in app but not in the imported file)
+            val toRemove = current - ids
+            // IDs we need to catch (in the imported file but not currently caught)
+            val toAdd = ids - current
+            // update DataStore so the changes survive app restarts
+            toRemove.forEach { preferences.toggleCaught(it) }
+            toAdd.forEach { preferences.toggleCaught(it) }
+            // update the list the UI is showing right now
+            _pokemonList.value = _pokemonList.value.map { pokemon ->
+                pokemon.copy(isCaught = ids.contains(pokemon.id))
             }
         }
     }
