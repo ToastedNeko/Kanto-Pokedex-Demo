@@ -1,6 +1,5 @@
 package com.puggles.pokedexdemo
 
-import android.R.attr.onClick
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,9 +27,7 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material3.Button
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.io.BufferedReader
@@ -61,7 +58,9 @@ class MainActivity : ComponentActivity() {
                         composable("detail/{pokemonId}") { backStackEntry ->
                             val pokemonId =
                                 backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull() ?: 1
-                            PokemonDetailScreen(pokemonId = pokemonId)
+                            PokemonDetailScreen(pokemonId = pokemonId,
+                                viewModel = viewModel
+                            )
                         }
                     }
                 }
@@ -154,6 +153,11 @@ fun PokemonItem(
         .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween) {
+        coil.compose.AsyncImage(
+            model = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png",
+            contentDescription = pokemon.name,
+            modifier = Modifier.size(64.dp)
+        )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "#${pokemon.id.toString().padStart(3, '0')}  ${pokemon.name}",

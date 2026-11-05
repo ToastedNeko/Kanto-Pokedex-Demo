@@ -16,9 +16,11 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import androidx.compose.material3.Button
+import androidx.compose.runtime.collectAsState
 
 @Composable
-fun PokemonDetailScreen(pokemonId: Int) {
+fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
     var detail by remember { mutableStateOf<PokemonDetailResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
@@ -62,11 +64,21 @@ fun PokemonDetailScreen(pokemonId: Int) {
             val pounds = kotlin.math.round(p.weight * 0.220462).toInt()
 
             Text(text = "Height: ${feet}'${inches}\"")
-            Text(text = "Weight: ${pounds} lbs")
+            Text(text = "Weight: $pounds lbs")
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Base Stats", fontSize = 18.sp)
             p.stats.forEach { stat ->
-                Text(text = "${stat.stat.name.replaceFirstChar { it.uppercase() }}: ${stat.base_stat}")
+                Text(text = "${stat.stat.name.replaceFirstChar { it.uppercase() }}: ${stat.baseStat}")
+            }
+
+            // match the caught or not caught state of each pokemon
+            Spacer(modifier = Modifier.height(24.dp))
+            val pokemon = viewModel.pokemonList.collectAsState().value.find { it.id == pokemonId }
+
+            Button(
+                onClick = { viewModel.toggleCaught(pokemonId) }
+            ) {
+                Text(if (pokemon?.isCaught == true) "Caught" else "Not Caught")
             }
         }
     } else {

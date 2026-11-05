@@ -10,15 +10,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.flow.first
-import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.launch
-import org.json.JSONArray
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 data class Pokemon(
     val id: Int,

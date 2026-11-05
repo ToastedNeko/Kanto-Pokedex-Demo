@@ -6,6 +6,7 @@
 
 package com.puggles.pokedexdemo
 
+import org.intellij.lang.annotations.Language
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -25,7 +26,8 @@ data class PokemonDetailResponse(
     val height: Int,
     val weight: Int,
     val types: List<TypeSlot>,
-    val stats: List<StatSlot>
+    val stats: List<StatSlot>,
+    val flavorTextEntries: List<FlavorTextEntry> = emptyList()
 )
 
 data class TypeSlot(
@@ -37,11 +39,20 @@ data class Type(
 )
 
 data class StatSlot(
-    val base_stat: Int,
+    val baseStat: Int,
     val stat: Stat
 )
 
 data class Stat(
+    val name: String
+)
+
+data class FlavorTextEntry(
+    val flavorText: String,
+    val language: Language
+)
+
+data class Language(
     val name: String
 )
 
