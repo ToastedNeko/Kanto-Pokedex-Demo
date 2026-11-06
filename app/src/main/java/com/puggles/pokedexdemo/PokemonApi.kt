@@ -6,7 +6,7 @@
 
 package com.puggles.pokedexdemo
 
-import org.intellij.lang.annotations.Language
+import com.google.gson.annotations.SerializedName
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -30,6 +30,11 @@ data class PokemonDetailResponse(
     val flavorTextEntries: List<FlavorTextEntry> = emptyList()
 )
 
+data class PokemonSpeciesResponse(
+    @SerializedName("flavor_text_entries")
+    val flavorTextEntries: List<FlavorTextEntry>? = emptyList()
+)
+
 data class TypeSlot(
     val type: Type
 )
@@ -48,14 +53,17 @@ data class Stat(
 )
 
 data class FlavorTextEntry(
-    val flavorText: String,
-    val language: Language
+    @SerializedName("flavor_text")
+    val flavorText: String?,
+    val language: FlavorLanguage?
 )
 
-data class Language(
+data class FlavorLanguage(
     val name: String
 )
 
+// flavor text (Pokedex description) comes from the species endpoint.
+// The regular /pokemon/{id} endpoint does not include it.
 interface PokemonApi {
     @GET("pokemon")
     suspend fun getPokemonList(
@@ -65,4 +73,8 @@ interface PokemonApi {
 
     @GET("pokemon/{id}")
     suspend fun getPokemonDetail(@Path("id") id: Int): PokemonDetailResponse
+
+    @GET("pokemon-species/{id}")
+    suspend fun getPokemonSpecies(@Path("id") id: Int): PokemonSpeciesResponse
+
 }

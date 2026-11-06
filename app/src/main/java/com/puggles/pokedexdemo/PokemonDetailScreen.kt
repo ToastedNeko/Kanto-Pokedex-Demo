@@ -23,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
     var detail by remember { mutableStateOf<PokemonDetailResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var flavorTextEntries by remember { mutableStateOf<List<FlavorTextEntry>>(emptyList())}
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(pokemonId) {
@@ -32,6 +33,8 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
                     .addConverterFactory(GsonConverterFactory.create()).build()
                     .create(PokemonApi::class.java)
                 detail = api.getPokemonDetail(pokemonId)
+                val species = api.getPokemonSpecies(pokemonId)
+                flavorTextEntries = species.flavorTextEntries ?: emptyList()
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
@@ -69,6 +72,17 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
             Text(text = "Base Stats", fontSize = 18.sp)
             p.stats.forEach { stat ->
                 Text(text = "${stat.stat.name.replaceFirstChar { it.uppercase() }}: ${stat.baseStat}")
+            }
+
+            val flavorText = flavorTextEntries
+                .firstOrNull {it.language?.name == "en"}
+                ?.flavorText
+                ?.replace("\n", " ")
+                ?.replace("\u000c", " ")
+
+            if(!flavorText.isNullOrBlank()){
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = flavorText, fontSize = 16.sp)
             }
 
             // match the caught or not caught state of each pokemon
