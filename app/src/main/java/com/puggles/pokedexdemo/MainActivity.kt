@@ -27,7 +27,9 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Matrix
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.io.BufferedReader
@@ -76,6 +78,7 @@ fun PokemonListScreen(
     val pokemonList = viewModel.pokemonList.collectAsState().value
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val currentVersion = viewModel.currentVersion.collectAsState().value
 
     // launcher that opens the file picker when the user taps Import
     val importLauncher = rememberLauncherForActivityResult(
@@ -105,9 +108,24 @@ fun PokemonListScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .padding(16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // select version: YELLOW, RED, or BLUE
+            GameVersion.entries.forEach { version ->
+                Button(
+                    onClick = { viewModel.setVersion(version)},
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (version == currentVersion)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text(version.name)
+                }
+            }
             // export button: turns currently caught Pokémon into a shareable JSON string
             Button(onClick = {
                 val caughtIds = pokemonList.filter { it.isCaught }.map { it.id }

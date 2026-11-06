@@ -2,6 +2,7 @@
 * Allows a user to import or export their data for the app
 * via DataStore file called "caught_prefs" that reads/writes the caught list
 * can remove and add ids from this list
+* done for specific game version that's chosen by a user
 *
 * */
 
@@ -18,26 +19,25 @@ private val Context.dataStore by preferencesDataStore(name = "caught_prefs")
 
 class CaughtPreferences(private val context: Context) {
     companion object {
-        private val CAUGHT_IDS = stringSetPreferencesKey("caught_ids")
+        // Pokemon caught per specific game version, RED, YELLOW, or BLUE
+        private fun keyFor(version: GameVersion) =
+            stringSetPreferencesKey("caught_ids_${version.name}")
     }
 
 
     // get current set of caught Pokemon
-    val caughtIds: Flow<Set<Int>> = context.dataStore.data.map { prefs ->
-        prefs[CAUGHT_IDS]?.mapNotNull { it.toIntOrNull() }?.toSet() ?: emptySet()
+    fun caughtIds(version: GameVersion): Flow<Set<Int>> = context.dataStore.data.map { prefs ->
+        prefs[keyFor(version)]?.mapNotNull { it.toIntOrNull() }?.toSet() ?: emptySet()
     }
 
-    // add or remove an id from the saved set of Pokemon
-    suspend fun toggleCaught(id: Int) {
+    // add or remove an id from the saved set of Pokemon for specific game version
+    suspend fun toggleCaught(version: GameVersion, id: Int) {
         context.dataStore.edit { prefs ->
-            val current = prefs[CAUGHT_IDS]?.toMutableSet() ?: mutableSetOf()
+            val key = keyFor(version)
+            val current = prefs[key]?.toMutableSet() ?: mutableSetOf()
             val idStr = id.toString()
-            if (current.contains(idStr)) {
-                current.remove(idStr)
-            } else {
-                current.add(idStr)
-            }
-            prefs[CAUGHT_IDS] = current
+            if (current.contains(idStr)) current.remove(idStr) else current.add(idStr)
+            prefs[key] = current
         }
     }
 }
