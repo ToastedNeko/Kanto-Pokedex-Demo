@@ -34,6 +34,18 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
 
@@ -71,6 +83,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonListScreen(
     viewModel: PokemonViewModel, onPokemonClick: (Int) -> Unit
@@ -79,6 +92,7 @@ fun PokemonListScreen(
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
     val currentVersion = viewModel.currentVersion.collectAsState().value
+    var showMenu by remember { mutableStateOf(false) }
 
     // launcher that opens the file picker when the user taps Import
     val importLauncher = rememberLauncherForActivityResult(
@@ -105,6 +119,46 @@ fun PokemonListScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        // add settings bar that allows for importing and exporting caught Pokémon
+        TopAppBar(
+            title = { Text("Pokédex")},
+            actions = {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Export") },
+                        onClick = {
+                            showMenu = false
+                            val caughtIds = pokemonList.filter { it.isCaught }.map { it.id }
+                            val json = JSONArray(caughtIds).toString()
+                            val sendIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, json)
+                                type = "text/plain"
+                            }
+                            context.startActivity(
+                                Intent.createChooser(
+                                    sendIntent,
+                                    "Export Caught Pokémon"
+                                )
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Import") },
+                        onClick = {
+                            showMenu = false
+                            importLauncher.launch("*/*")
+                        }
+                    )
+                }
+            }
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -125,23 +179,6 @@ fun PokemonListScreen(
                 ) {
                     Text(version.name)
                 }
-            }
-            // export button: turns currently caught Pokémon into a shareable JSON string
-            Button(onClick = {
-                val caughtIds = pokemonList.filter { it.isCaught }.map { it.id }
-                val json = JSONArray(caughtIds).toString()
-                val sendIntent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, json)
-                    type = "text/plain"
-                }
-                context.startActivity(Intent.createChooser(sendIntent, "Export Caught Pokémon"))
-            }) {
-                Text("Export")
-            }
-            // import button: opens the file picker
-            Button(onClick = { importLauncher.launch("*/*") }) {
-                Text("Import")
             }
         }
 
