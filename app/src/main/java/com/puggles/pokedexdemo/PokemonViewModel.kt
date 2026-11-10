@@ -25,7 +25,7 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
     private val preferences = CaughtPreferences(application)
 
     // get the current game version
-    private val _currentVersion = MutableStateFlow(GameVersion.YELLOW)
+    private val _currentVersion = MutableStateFlow(GameVersion.RED)
     val currentVersion: StateFlow<GameVersion> = _currentVersion.asStateFlow()
 
     // retrieve the list of Pokemon from PokeApi
