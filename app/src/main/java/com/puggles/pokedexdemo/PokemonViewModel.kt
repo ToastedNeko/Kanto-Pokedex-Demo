@@ -98,4 +98,26 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
+
+    private val _exportResult = MutableStateFlow("")
+    val exportResult: StateFlow<String> = _exportResult.asStateFlow()
+
+    fun exportAllCaught(onExport: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val data = preferences.exportAll()
+                onExport(data)          // ← this calls the lambda you pass from MainActivity
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun importAllCaught(data: String){
+        viewModelScope.launch {
+            preferences.importAll(data)
+            loadPokemon()
+        }
+    }
+
 }

@@ -22,16 +22,12 @@ import com.puggles.pokedexdemo.ui.theme.PokedexDemoTheme
 import androidx.compose.foundation.clickable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.graphics.Matrix
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import androidx.compose.material.icons.Icons
@@ -46,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
 
@@ -94,34 +91,41 @@ fun PokemonListScreen(
     val currentVersion = viewModel.currentVersion.collectAsState().value
     var showMenu by remember { mutableStateOf(false) }
 
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        uri?.let {
+            viewModel.exportAllCaught { data ->
+                scope.launch {
+                    context.contentResolver.openOutputStream(it)?.use { stream ->
+                        stream.write(data.toByteArray())
+                    }
+                    android.widget.Toast.makeText(context, "Exported all versions", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     // launcher that opens the file picker when the user taps Import
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
             scope.launch {
-                val ids = mutableSetOf<Int>()
-                // open the file the user selected and read its text
                 context.contentResolver.openInputStream(it)?.use { stream ->
-                    BufferedReader(InputStreamReader(stream)).use { reader ->
-                        val json = reader.readText()
-                        val array = JSONArray(json)
-                        // convert the JSON array (e.g. [1,4,7,25]) into a Set of Ints
-                        for (i in 0 until array.length()) {
-                            ids.add(array.getInt(i))
-                        }
+                    val text = BufferedReader(InputStreamReader(stream)).use { reader ->
+                        reader.readText()
                     }
+                    viewModel.importAllCaught(text)
+                    android.widget.Toast.makeText(context, "Imported all versions", android.widget.Toast.LENGTH_SHORT).show()
                 }
-                // tell the ViewModel to update caught status to match the imported IDs
-                viewModel.importCaught(ids)
             }
         }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // add settings bar that allows for importing and exporting caught Pokémon
         TopAppBar(
-            title = { Text("Pokédex")},
+            title = { Text("Pokédex") },
             actions = {
                 IconButton(onClick = { showMenu = true }) {
                     Icon(Icons.Default.MoreVert, contentDescription = "Menu")
@@ -134,19 +138,7 @@ fun PokemonListScreen(
                         text = { Text("Export") },
                         onClick = {
                             showMenu = false
-                            val caughtIds = pokemonList.filter { it.isCaught }.map { it.id }
-                            val json = JSONArray(caughtIds).toString()
-                            val sendIntent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, json)
-                                type = "text/plain"
-                            }
-                            context.startActivity(
-                                Intent.createChooser(
-                                    sendIntent,
-                                    "Export Caught Pokémon"
-                                )
-                            )
+                            exportLauncher.launch("pokedex_caught.txt")
                         }
                     )
                     DropdownMenuItem(
@@ -159,16 +151,16 @@ fun PokemonListScreen(
                 }
             }
         )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp, vertical = 4.dp),
+                .padding(16.dp, 4.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // select version: YELLOW, RED, or BLUE
             GameVersion.entries.forEach { version ->
                 Button(
-                    onClick = { viewModel.setVersion(version)},
+                    onClick = { viewModel.setVersion(version) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (version == currentVersion)
@@ -191,7 +183,8 @@ fun PokemonListScreen(
                 PokemonItem(
                     pokemon = pokemon,
                     onToggleCaught = { viewModel.toggleCaught(pokemon.id) },
-                    onClick = { onPokemonClick(pokemon.id) })
+                    onClick = { onPokemonClick(pokemon.id) }
+                )
             }
         }
     }
