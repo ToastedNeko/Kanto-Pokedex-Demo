@@ -40,7 +40,7 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // switch version and reload the caught status for chosen version
-    fun setVersion(version: GameVersion){
+    fun setVersion(version: GameVersion) {
         _currentVersion.value = version
         loadPokemon()
     }
@@ -90,8 +90,8 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
             // IDs we need to catch (in the imported file but not currently caught)
             val toAdd = ids - current
             // update DataStore so the changes survive app restarts
-            toRemove.forEach { preferences.toggleCaught(version,it) }
-            toAdd.forEach { preferences.toggleCaught(version,it) }
+            toRemove.forEach { preferences.toggleCaught(version, it) }
+            toAdd.forEach { preferences.toggleCaught(version, it) }
             // update the list the UI is showing right now
             _pokemonList.value = _pokemonList.value.map { pokemon ->
                 pokemon.copy(isCaught = ids.contains(pokemon.id))
@@ -113,10 +113,22 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun importAllCaught(data: String){
+    fun importAllCaught(data: String) {
         viewModelScope.launch {
             preferences.importAll(data)
             loadPokemon()
+        }
+    }
+
+    // reset all caught Pokemon from all versions
+    fun resetAll() {
+        viewModelScope.launch {
+            try {
+                preferences.importAll("red:|blue:|yellow:")
+                loadPokemon()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

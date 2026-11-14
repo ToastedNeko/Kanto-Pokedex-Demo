@@ -43,6 +43,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 class MainActivity : ComponentActivity() {
 
@@ -69,8 +71,8 @@ class MainActivity : ComponentActivity() {
                         composable("detail/{pokemonId}") { backStackEntry ->
                             val pokemonId =
                                 backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull() ?: 1
-                            PokemonDetailScreen(pokemonId = pokemonId,
-                                viewModel = viewModel
+                            PokemonDetailScreen(
+                                pokemonId = pokemonId, viewModel = viewModel
                             )
                         }
                     }
@@ -90,6 +92,7 @@ fun PokemonListScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val currentVersion = viewModel.currentVersion.collectAsState().value
     var showMenu by remember { mutableStateOf(false) }
+    var showResetDialog by remember { mutableStateOf(false) }
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/plain")
@@ -100,7 +103,9 @@ fun PokemonListScreen(
                     context.contentResolver.openOutputStream(it)?.use { stream ->
                         stream.write(data.toByteArray())
                     }
-                    android.widget.Toast.makeText(context, "Exported all versions", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(
+                        context, "Exported all versions", android.widget.Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -117,40 +122,35 @@ fun PokemonListScreen(
                         reader.readText()
                     }
                     viewModel.importAllCaught(text)
-                    android.widget.Toast.makeText(context, "Imported all versions", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(
+                        context, "Imported all versions", android.widget.Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text("Pokédex") },
-            actions = {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "Menu")
-                }
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Export") },
-                        onClick = {
-                            showMenu = false
-                            exportLauncher.launch("pokedex_caught.txt")
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Import") },
-                        onClick = {
-                            showMenu = false
-                            importLauncher.launch("*/*")
-                        }
-                    )
-                }
+        TopAppBar(title = { Text("Pokédex") }, actions = {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Menu")
             }
-        )
+            DropdownMenu(
+                expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                DropdownMenuItem(text = { Text("Export Caught") }, onClick = {
+                    showMenu = false
+                    exportLauncher.launch("pokedex_caught.txt")
+                })
+                DropdownMenuItem(text = { Text("Restore Caught") }, onClick = {
+                    showMenu = false
+                    importLauncher.launch("*/*")
+                })
+                DropdownMenuItem(text = { Text("Reset All") }, onClick = {
+                    showMenu = false
+                    showResetDialog = true
+                })
+            }
+        })
 
         Row(
             modifier = Modifier
@@ -163,10 +163,8 @@ fun PokemonListScreen(
                     onClick = { viewModel.setVersion(version) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (version == currentVersion)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = if (version == currentVersion) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
                     Text(version.name)
@@ -183,9 +181,31 @@ fun PokemonListScreen(
                 PokemonItem(
                     pokemon = pokemon,
                     onToggleCaught = { viewModel.toggleCaught(pokemon.id) },
-                    onClick = { onPokemonClick(pokemon.id) }
-                )
+                    onClick = { onPokemonClick(pokemon.id) })
             }
+        }
+        if (showResetDialog) {
+            AlertDialog(
+                onDismissRequest = { showResetDialog = false },
+                title = { Text("Reset all?") },
+                text = { Text("This will clear every Pokémon caught for Red, Blue, and Yellow.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showResetDialog = false
+                            viewModel.resetAll()
+                            android.widget.Toast.makeText(
+                                context, "All versions reset.", android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        }) {
+                        Text("Reset")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showResetDialog = false }) {
+                        Text("Cancel")
+                    }
+                })
         }
     }
 }
@@ -194,10 +214,9 @@ fun PokemonListScreen(
 fun PokemonItem(
     pokemon: Pokemon, onToggleCaught: () -> Unit, onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }   // ← NEW
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onClick() }
         .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween) {
