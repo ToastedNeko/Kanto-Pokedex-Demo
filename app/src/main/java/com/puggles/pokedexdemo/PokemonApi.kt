@@ -44,6 +44,7 @@ data class Type(
 )
 
 data class StatSlot(
+    @SerializedName("base_stat")
     val baseStat: Int,
     val stat: Stat
 )

@@ -23,7 +23,7 @@ import androidx.compose.runtime.collectAsState
 fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
     var detail by remember { mutableStateOf<PokemonDetailResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    var flavorTextEntries by remember { mutableStateOf<List<FlavorTextEntry>>(emptyList())}
+    var flavorTextEntries by remember { mutableStateOf<List<FlavorTextEntry>>(emptyList()) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(pokemonId) {
@@ -74,13 +74,13 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
                 Text(text = "${stat.stat.name.replaceFirstChar { it.uppercase() }}: ${stat.baseStat}")
             }
 
-            val flavorText = flavorTextEntries
-                .firstOrNull {it.language?.name == "en"}
-                ?.flavorText
-                ?.replace("\n", " ")
-                ?.replace("\u000c", " ")
+            val flavorText =
+                flavorTextEntries.firstOrNull { it.language?.name == "en" }?.flavorText?.replace(
+                        "\n",
+                        " "
+                    )?.replace("\u000c", " ")
 
-            if(!flavorText.isNullOrBlank()){
+            if (!flavorText.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = flavorText, fontSize = 16.sp)
             }
@@ -90,8 +90,7 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
             val pokemon = viewModel.pokemonList.collectAsState().value.find { it.id == pokemonId }
 
             Button(
-                onClick = { viewModel.toggleCaught(pokemonId) }
-            ) {
+                onClick = { viewModel.toggleCaught(pokemonId) }) {
                 Text(if (pokemon?.isCaught == true) "Caught" else "Not Caught")
             }
         }
