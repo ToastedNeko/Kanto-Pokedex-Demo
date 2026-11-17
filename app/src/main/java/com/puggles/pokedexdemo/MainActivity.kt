@@ -1,6 +1,5 @@
 package com.puggles.pokedexdemo
 
-import android.R.attr.version
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -46,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
-import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.FilterQuality
 
 class MainActivity : ComponentActivity() {

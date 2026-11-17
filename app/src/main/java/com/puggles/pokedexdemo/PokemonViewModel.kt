@@ -80,25 +80,6 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun importCaught(ids: Set<Int>) {
-        viewModelScope.launch {
-            val version = _currentVersion.value
-            // IDs that are currently marked caught in the app
-            val current = _pokemonList.value.filter { it.isCaught }.map { it.id }.toSet()
-            // IDs we need to un-catch (in app but not in the imported file)
-            val toRemove = current - ids
-            // IDs we need to catch (in the imported file but not currently caught)
-            val toAdd = ids - current
-            // update DataStore so the changes survive app restarts
-            toRemove.forEach { preferences.toggleCaught(version, it) }
-            toAdd.forEach { preferences.toggleCaught(version, it) }
-            // update the list the UI is showing right now
-            _pokemonList.value = _pokemonList.value.map { pokemon ->
-                pokemon.copy(isCaught = ids.contains(pokemon.id))
-            }
-        }
-    }
-
     private val _exportResult = MutableStateFlow("")
     val exportResult: StateFlow<String> = _exportResult.asStateFlow()
 
