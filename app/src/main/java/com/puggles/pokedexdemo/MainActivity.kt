@@ -237,11 +237,13 @@ fun PokemonItem(
                 text = "#${pokemon.id.toString().padStart(3, '0')}  ${pokemon.name}",
                 fontSize = 18.sp
             )
-            Text(
-                text = pokemon.types.joinToString(" / "),
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if(pokemon.types.isNotEmpty()){
+                Text(
+                    text = pokemon.types.joinToString  (" / "),
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         PokeBallButton(
