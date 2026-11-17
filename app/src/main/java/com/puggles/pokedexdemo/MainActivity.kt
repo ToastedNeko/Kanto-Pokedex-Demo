@@ -24,6 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,6 +47,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.unit.Dp
 
 class MainActivity : ComponentActivity() {
 
@@ -225,7 +229,7 @@ fun PokemonItem(
         coil.compose.AsyncImage(
             model = spriteUrl(pokemon.id, version),
             contentDescription = pokemon.name,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(80.dp),
             filterQuality = FilterQuality.None
         )
         Column(modifier = Modifier.weight(1f)) {
@@ -240,8 +244,28 @@ fun PokemonItem(
             )
         }
 
-        Button(onClick = onToggleCaught) {
-            Text(if (pokemon.isCaught) "Caught" else "Not Caught")
-        }
+        PokeBallButton(
+            isCaught = pokemon.isCaught,
+            onClick = onToggleCaught
+        )
     }
+}
+
+@Composable
+fun PokeBallButton(
+    isCaught: Boolean,
+    onClick: () -> Unit,
+    size: Dp = 40.dp
+){
+    Image(
+        bitmap = ImageBitmap.imageResource(
+            if(isCaught) R.drawable.pokeball else R.drawable.pokeball_gray
+        ),
+        contentDescription = if (isCaught) "Caught" else "Not caught",
+        modifier = Modifier
+            .size(size)
+            .clickable{onClick()},
+        alpha = if (isCaught) 1f else 0.4f,
+        filterQuality = FilterQuality.None
+    )
 }

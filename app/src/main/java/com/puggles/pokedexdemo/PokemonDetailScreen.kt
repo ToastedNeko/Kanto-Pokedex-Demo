@@ -5,21 +5,25 @@
 
 package com.puggles.pokedexdemo
 
+import android.R.attr.fontWeight
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import androidx.compose.material3.Button
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontWeight
+
 @Composable
 fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
     var detail by remember { mutableStateOf<PokemonDetailResponse?>(null) }
@@ -100,9 +104,18 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
             Spacer(modifier = Modifier.height(24.dp))
             val pokemon = viewModel.pokemonList.collectAsState().value.find { it.id == pokemonId }
 
-            Button(
-                onClick = { viewModel.toggleCaught(pokemonId) }) {
-                Text(if (pokemon?.isCaught == true) "Caught" else "Not Caught")
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.clickable{viewModel.toggleCaught(pokemonId)}
+            ) {
+                PokeBallButton(
+                    isCaught = pokemon?.isCaught == true,
+                    onClick = {viewModel.toggleCaught(pokemonId) },
+                    size = 30.dp
+                )
+                Text(if(pokemon?.isCaught == true) "Caught" else "Not caught",
+                    fontWeight = if (pokemon?.isCaught == true ) FontWeight.Bold else FontWeight.Normal
+                    )
             }
         }
     } else {
