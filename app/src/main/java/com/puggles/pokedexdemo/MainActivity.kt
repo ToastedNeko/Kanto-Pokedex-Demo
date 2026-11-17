@@ -1,5 +1,6 @@
 package com.puggles.pokedexdemo
 
+import android.R.attr.version
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -45,6 +46,8 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.FilterQuality
 
 class MainActivity : ComponentActivity() {
 
@@ -180,6 +183,7 @@ fun PokemonListScreen(
             items(pokemonList) { pokemon ->
                 PokemonItem(
                     pokemon = pokemon,
+                    version = currentVersion,
                     onToggleCaught = { viewModel.toggleCaught(pokemon.id) },
                     onClick = { onPokemonClick(pokemon.id) })
             }
@@ -212,7 +216,7 @@ fun PokemonListScreen(
 
 @Composable
 fun PokemonItem(
-    pokemon: Pokemon, onToggleCaught: () -> Unit, onClick: () -> Unit
+    pokemon: Pokemon, version: GameVersion, onToggleCaught: () -> Unit, onClick: () -> Unit
 ) {
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -221,9 +225,10 @@ fun PokemonItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween) {
         coil.compose.AsyncImage(
-            model = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png",
+            model = spriteUrl(pokemon.id, version),
             contentDescription = pokemon.name,
-            modifier = Modifier.size(64.dp)
+            modifier = Modifier.size(64.dp),
+            filterQuality = FilterQuality.None
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(

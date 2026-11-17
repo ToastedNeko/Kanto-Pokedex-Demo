@@ -18,7 +18,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import androidx.compose.material3.Button
 import androidx.compose.runtime.collectAsState
-
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.foundation.layout.size
 @Composable
 fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
     var detail by remember { mutableStateOf<PokemonDetailResponse?>(null) }
@@ -59,6 +60,16 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
                     p.id.toString().padStart(3, '0')
                 } ${p.name.replaceFirstChar { it.uppercase() }}", fontSize = 24.sp
             )
+
+            // sprite for user selected game version
+            val currentVersion = viewModel.currentVersion.collectAsState().value
+            coil.compose.AsyncImage(
+                model = spriteUrl(p.id, currentVersion),
+                contentDescription = p.name,
+                modifier = Modifier.size(160.dp),
+                filterQuality = FilterQuality.None
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Types: ${p.types.joinToString(" / ") { it.type.name.replaceFirstChar { c -> c.uppercase() } }}")// Height: API gives decimeters → feet and inches
             val totalInches = (p.height * 3.93701).toInt()
