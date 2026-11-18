@@ -1,5 +1,6 @@
 package com.puggles.pokedexdemo
 
+import android.R.attr.onClick
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,6 +27,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -48,6 +50,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
@@ -267,7 +270,8 @@ fun PokemonItem(
         PokeBallButton(
             isCaught = pokemon.isCaught,
             onClick = onToggleCaught,
-            size = 28.dp
+            size = 32.dp,
+            tapPadding = 20.dp
         )
     }
 }
@@ -276,7 +280,8 @@ fun PokemonItem(
 fun PokeBallButton(
     isCaught: Boolean,
     onClick: () -> Unit,
-    size: Dp = 40.dp
+    size: Dp = 40.dp,
+    tapPadding: Dp = 8.dp
 ){
     Image(
         bitmap = ImageBitmap.imageResource(
@@ -284,8 +289,9 @@ fun PokeBallButton(
         ),
         contentDescription = if (isCaught) "Caught" else "Not caught",
         modifier = Modifier
+            .clip(CircleShape)
             .clickable { onClick() }
-            .padding(8.dp)
+            .padding(tapPadding)
             .size(size),
 
         filterQuality = FilterQuality.None
