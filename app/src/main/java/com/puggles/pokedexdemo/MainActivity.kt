@@ -46,9 +46,11 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 
 class MainActivity : ComponentActivity() {
@@ -136,7 +138,15 @@ fun PokemonListScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("Pokédex") }, actions = {
+        TopAppBar(title = { Text("Kanto Dex", fontWeight = FontWeight.Bold) },
+
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = gameColor(currentVersion),
+                titleContentColor = onGameColor(currentVersion),
+                actionIconContentColor = onGameColor(currentVersion)
+            ),
+
+            actions = {
             IconButton(onClick = { showMenu = true }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "Menu")
             }
@@ -168,8 +178,11 @@ fun PokemonListScreen(
                     onClick = { viewModel.setVersion(version) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (version == currentVersion) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = if (version == currentVersion) gameColor(version)
+                        else MaterialTheme.colorScheme.surfaceVariant,
+
+                        contentColor = if (version == currentVersion) onGameColor(version)
+                        else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
                     Text(version.name)
@@ -267,7 +280,7 @@ fun PokeBallButton(
         modifier = Modifier
             .size(size)
             .clickable{onClick()},
-        alpha = if (isCaught) 1f else 0.4f,
+//        alpha = if (isCaught) 1f else 0.4f,
         filterQuality = FilterQuality.None
     )
 }
