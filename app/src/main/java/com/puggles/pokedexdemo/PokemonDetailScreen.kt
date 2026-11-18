@@ -5,7 +5,6 @@
 
 package com.puggles.pokedexdemo
 
-import android.R.attr.fontWeight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,7 +20,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 
 @Composable
