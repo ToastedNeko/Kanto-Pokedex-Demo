@@ -55,6 +55,7 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .padding(16.dp)
         ) {
             Text(

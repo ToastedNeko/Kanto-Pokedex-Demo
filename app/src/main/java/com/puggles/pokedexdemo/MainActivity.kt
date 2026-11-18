@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.graphics.FilterQuality
@@ -193,9 +194,11 @@ fun PokemonListScreen(
         }
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding(),
+            contentPadding = PaddingValues(16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             items(pokemonList) { pokemon ->
                 PokemonItem(
@@ -238,13 +241,13 @@ fun PokemonItem(
     Row(modifier = Modifier
         .fillMaxWidth()
         .clickable { onClick() }
-        .padding(vertical = 8.dp),
+        .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween) {
         coil.compose.AsyncImage(
             model = spriteUrl(pokemon.id, version),
             contentDescription = pokemon.name,
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(64.dp),
             filterQuality = FilterQuality.None
         )
         Column(modifier = Modifier.weight(1f)) {
@@ -263,7 +266,8 @@ fun PokemonItem(
 
         PokeBallButton(
             isCaught = pokemon.isCaught,
-            onClick = onToggleCaught
+            onClick = onToggleCaught,
+            size = 28.dp
         )
     }
 }
@@ -280,9 +284,10 @@ fun PokeBallButton(
         ),
         contentDescription = if (isCaught) "Caught" else "Not caught",
         modifier = Modifier
-            .size(size)
-            .clickable{onClick()},
-//        alpha = if (isCaught) 1f else 0.4f,
+            .clickable { onClick() }
+            .padding(8.dp)
+            .size(size),
+
         filterQuality = FilterQuality.None
     )
 }
