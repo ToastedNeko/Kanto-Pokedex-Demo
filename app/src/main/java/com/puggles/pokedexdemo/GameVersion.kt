@@ -1,5 +1,7 @@
 package com.puggles.pokedexdemo
 
+// address for gen 1 sprite set game versions
+private const val SPRITE_BASE_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/"
 enum class GameVersion {
     RED, BLUE, YELLOW
 }
@@ -11,6 +13,6 @@ fun spriteUrl(id: Int, version: GameVersion): String{
         GameVersion.YELLOW -> "yellow"
         else -> "red-blue"
     }
-    return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/$folder/transparent/$id.png"
+    return "$SPRITE_BASE_URL$folder/transparent/$id.png"
 }
 

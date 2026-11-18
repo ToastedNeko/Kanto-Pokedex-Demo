@@ -87,7 +87,7 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 val data = preferences.exportAll()
-                onExport(data)          // ← this calls the lambda you pass from MainActivity
+                onExport(data)          // calls lambda pass from MainActivity
             } catch (e: Exception) {
                 e.printStackTrace()
             }
