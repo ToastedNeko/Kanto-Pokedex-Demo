@@ -63,7 +63,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             PokedexDemoTheme {
                 val navController = rememberNavController()
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize(),
+                    contentWindowInsets = WindowInsets(0,0,0,0)
+                ) { innerPadding ->
                     NavHost(
                         navController = navController,
                         startDestination = "list",
@@ -193,7 +195,7 @@ fun PokemonListScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             items(pokemonList) { pokemon ->
                 PokemonItem(
