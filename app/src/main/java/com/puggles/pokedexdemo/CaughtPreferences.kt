@@ -47,17 +47,21 @@ class CaughtPreferences(private val context: Context) {
         val blue = caughtIds(GameVersion.BLUE).first()
         val yellow = caughtIds(GameVersion.YELLOW).first()
 
-        return "red:${red.joinToString ( "," )}|blue:${blue.joinToString ( "," )}|yellow:${yellow.joinToString ( "," )}"
+        return "red:${red.joinToString(",")}|blue:${blue.joinToString(",")}|yellow:${
+            yellow.joinToString(
+                ","
+            )
+        }"
     }
 
-    suspend fun importAll(data: String){
+    suspend fun importAll(data: String) {
         // split the exported string into three version pieces
         // ie "red:1,2,3|..." becomes -> "red:1,2,3",...
         val parts = data.split("|")
         for (part in parts) {
             // split each piece on the colon
             val pieces = part.split(":")
-            if(pieces.size == 2){
+            if (pieces.size == 2) {
                 val versionName = pieces[0] // "red", "blue", "yellow" versions
                 val ids = pieces[1].split(",").mapNotNull { it.toIntOrNull() }.toSet()
 

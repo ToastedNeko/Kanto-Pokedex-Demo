@@ -1,6 +1,5 @@
 package com.puggles.pokedexdemo
 
-import android.R.attr.version
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,11 +28,8 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
     val currentVersion: StateFlow<GameVersion> = _currentVersion.asStateFlow()
 
     // retrieve the list of Pokemon from PokeApi
-    private val api: PokemonApi = Retrofit.Builder()
-        .baseUrl("https://pokeapi.co/api/v2/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-        .create(PokemonApi::class.java)
+    private val api: PokemonApi = Retrofit.Builder().baseUrl("https://pokeapi.co/api/v2/")
+        .addConverterFactory(GsonConverterFactory.create()).build().create(PokemonApi::class.java)
 
     init {
         loadPokemon()
@@ -81,7 +77,6 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private val _exportResult = MutableStateFlow("")
-    val exportResult: StateFlow<String> = _exportResult.asStateFlow()
 
     fun exportAllCaught(onExport: (String) -> Unit) {
         viewModelScope.launch {

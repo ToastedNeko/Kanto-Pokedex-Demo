@@ -1,7 +1,5 @@
 package com.puggles.pokedexdemo
 
-import android.R.attr.contentDescription
-import android.R.attr.onClick
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -48,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.draw.clip
@@ -70,8 +67,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             PokedexDemoTheme {
                 val navController = rememberNavController()
-                Scaffold(modifier = Modifier.fillMaxSize(),
-                    contentWindowInsets = WindowInsets(0,0,0,0)
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
@@ -147,7 +145,8 @@ fun PokemonListScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("Kanto Dex", fontWeight = FontWeight.Bold) },
+        TopAppBar(
+            title = { Text("Kanto Dex", fontWeight = FontWeight.Bold) },
 
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = gameColor(currentVersion),
@@ -156,25 +155,25 @@ fun PokemonListScreen(
             ),
 
             actions = {
-            IconButton(onClick = { showMenu = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "Menu")
-            }
-            DropdownMenu(
-                expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                DropdownMenuItem(text = { Text("Export Caught") }, onClick = {
-                    showMenu = false
-                    exportLauncher.launch("pokedex_caught.txt")
-                })
-                DropdownMenuItem(text = { Text("Restore Caught") }, onClick = {
-                    showMenu = false
-                    importLauncher.launch("*/*")
-                })
-                DropdownMenuItem(text = { Text("Reset All") }, onClick = {
-                    showMenu = false
-                    showResetDialog = true
-                })
-            }
-        })
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+                }
+                DropdownMenu(
+                    expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                    DropdownMenuItem(text = { Text("Export Caught") }, onClick = {
+                        showMenu = false
+                        exportLauncher.launch("pokedex_caught.txt")
+                    })
+                    DropdownMenuItem(text = { Text("Restore Caught") }, onClick = {
+                        showMenu = false
+                        importLauncher.launch("*/*")
+                    })
+                    DropdownMenuItem(text = { Text("Reset All") }, onClick = {
+                        showMenu = false
+                        showResetDialog = true
+                    })
+                }
+            })
 
         Row(
             modifier = Modifier
@@ -268,9 +267,9 @@ fun PokemonItem(
                 text = "#${pokemon.id.toString().padStart(3, '0')}  ${pokemon.name}",
                 fontSize = 18.sp
             )
-            if(pokemon.types.isNotEmpty()){
+            if (pokemon.types.isNotEmpty()) {
                 Text(
-                    text = pokemon.types.joinToString  (" / "),
+                    text = pokemon.types.joinToString(" / "),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -278,25 +277,19 @@ fun PokemonItem(
         }
 
         PokeBallButton(
-            isCaught = pokemon.isCaught,
-            onClick = onToggleCaught,
-            size = 32.dp,
-            tapPadding = 20.dp
+            isCaught = pokemon.isCaught, onClick = onToggleCaught, size = 32.dp, tapPadding = 20.dp
         )
     }
 }
 
 @Composable
 fun PokeBallButton(
-    isCaught: Boolean,
-    onClick: () -> Unit,
-    size: Dp = 40.dp,
-    tapPadding: Dp = 8.dp
-){
+    isCaught: Boolean, onClick: () -> Unit, size: Dp = 40.dp, tapPadding: Dp = 8.dp
+) {
     Image(
         bitmap = ImageBitmap.imageResource(
-            if(isCaught) R.drawable.pokeball else R.drawable.pokeball_gray
-        ),
+        if (isCaught) R.drawable.pokeball else R.drawable.pokeball_gray
+    ),
         contentDescription = if (isCaught) "Caught" else "Not caught",
         modifier = Modifier
             .clip(CircleShape)
@@ -304,8 +297,7 @@ fun PokeBallButton(
             .padding(tapPadding)
             .size(size),
 
-        filterQuality = FilterQuality.None
-    )
+        filterQuality = FilterQuality.None)
 }
 
 //@Preview(showBackground = true)

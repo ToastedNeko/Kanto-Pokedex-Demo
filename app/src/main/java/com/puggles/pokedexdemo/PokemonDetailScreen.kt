@@ -5,8 +5,11 @@
 
 package com.puggles.pokedexdemo
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -19,8 +22,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
@@ -52,47 +59,87 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
         }
     } else if (detail != null) {
         val p = detail!!
+        val currentVersion = viewModel.currentVersion.collectAsState().value
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(16.dp)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "#${
-                    p.id.toString().padStart(3, '0')
-                } ${p.name.replaceFirstChar { it.uppercase() }}", fontSize = 24.sp
-            )
 
-            // sprite for user selected game version
-            val currentVersion = viewModel.currentVersion.collectAsState().value
-            coil.compose.AsyncImage(
-                model = spriteUrl(p.id, currentVersion),
-                contentDescription = p.name,
-                modifier = Modifier.size(160.dp),
-                filterQuality = FilterQuality.None
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(gameColor(currentVersion), RoundedCornerShape(8.dp))
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Types: ${p.types.joinToString(" / ") { it.type.name.replaceFirstChar { c -> c.uppercase() } }}")// Height: API gives decimeters → feet and inches
-            val totalInches = (p.height * 3.93701).toInt()
-            val feet = totalInches / 12
-            val inches = totalInches % 12
-            val pounds = kotlin.math.round(p.weight * 0.220462).toInt()
+                DexBox {
+                    Text(
+                        text = p.name.uppercase(),
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
-            Text(text = "Height: ${feet}'${inches}\"")
-            Text(text = "Weight: $pounds lbs")
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Base Stats", fontSize = 18.sp)
-            p.stats.forEach { stat ->
-                Text(text = "${stat.stat.name.replaceFirstChar { it.uppercase() }}: ${stat.baseStat}")
+                // sprite for user selected game version
+                coil.compose.AsyncImage(
+                    model = spriteUrl(p.id, currentVersion),
+                    contentDescription = p.name,
+                    modifier = Modifier
+                        .background(Color.White, RoundedCornerShape(4.dp))
+                        .border(2.dp, Color.Black, RoundedCornerShape(4.dp))
+                        .padding(4.dp)
+                        .size(160.dp),
+
+                    filterQuality = FilterQuality.None
+                )
+
+                val totalInches = (p.height * 3.93701).toInt()
+                val feet = totalInches / 12
+                val inches = totalInches % 12
+                val pounds = kotlin.math.round(p.weight * 0.220462).toInt()
+
+                DexBox {
+                    Column(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("Number: #${p.id.toString().padStart(3, '0')}")
+                        Text("Type: ${p.types.joinToString(" / ") { it.type.name.replaceFirstChar { c -> c.uppercase() } }}")
+                        Text("Height: ${feet}'$inches\"")
+                        Text("Weight: $pounds lbs")
+                    }
+                }
+                DexBox {
+                    Text(
+                        text = "Base Stats",
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    p.stats.forEach { stat ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(stat.stat.name.replaceFirstChar { it.uppercase() })
+                            Text("${stat.baseStat}")
+                        }
+                    }
+                }
             }
 
             val flavorText =
                 flavorTextEntries.firstOrNull { it.language?.name == "en" }?.flavorText?.replace(
-                        "\n",
-                        " "
-                    )?.replace("\u000c", " ")
+                    "\n", " "
+                )?.replace("\u000c", " ")
 
             if (!flavorText.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -105,21 +152,36 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.clickable{viewModel.toggleCaught(pokemonId)}
-            ) {
+                modifier = Modifier.clickable { viewModel.toggleCaught(pokemonId) }) {
                 PokeBallButton(
                     isCaught = pokemon?.isCaught == true,
-                    onClick = {viewModel.toggleCaught(pokemonId) },
+                    onClick = { viewModel.toggleCaught(pokemonId) },
                     size = 30.dp
                 )
-                Text(if(pokemon?.isCaught == true) "Caught" else "Not caught",
-                    fontWeight = if (pokemon?.isCaught == true ) FontWeight.Bold else FontWeight.Normal
-                    )
+                Text(
+                    if (pokemon?.isCaught == true) "Caught" else "Not caught",
+                    fontWeight = if (pokemon?.isCaught == true) FontWeight.Bold else FontWeight.Normal
+                )
             }
         }
     } else {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Failed to load details")
         }
+    }
+}
+
+@Composable
+fun DexBox(content: @Composable ColumnScope.() -> Unit) {
+    CompositionLocalProvider(LocalContentColor provides Color.Black) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, RoundedCornerShape(6.dp))
+                .border(4.dp, Color.Black, RoundedCornerShape(6.dp))
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            content = content
+        )
     }
 }

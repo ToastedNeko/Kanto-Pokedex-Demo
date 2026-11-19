@@ -16,8 +16,7 @@ data class PokemonListResponse(
 )
 
 data class PokemonResult(
-    val name: String,
-    val url: String
+    val name: String, val url: String
 )
 
 data class PokemonDetailResponse(
@@ -31,8 +30,7 @@ data class PokemonDetailResponse(
 )
 
 data class PokemonSpeciesResponse(
-    @SerializedName("flavor_text_entries")
-    val flavorTextEntries: List<FlavorTextEntry>? = emptyList()
+    @SerializedName("flavor_text_entries") val flavorTextEntries: List<FlavorTextEntry>? = emptyList()
 )
 
 data class TypeSlot(
@@ -44,9 +42,7 @@ data class Type(
 )
 
 data class StatSlot(
-    @SerializedName("base_stat")
-    val baseStat: Int,
-    val stat: Stat
+    @SerializedName("base_stat") val baseStat: Int, val stat: Stat
 )
 
 data class Stat(
@@ -54,9 +50,7 @@ data class Stat(
 )
 
 data class FlavorTextEntry(
-    @SerializedName("flavor_text")
-    val flavorText: String?,
-    val language: FlavorLanguage?
+    @SerializedName("flavor_text") val flavorText: String?, val language: FlavorLanguage?
 )
 
 data class FlavorLanguage(
@@ -68,8 +62,7 @@ data class FlavorLanguage(
 interface PokemonApi {
     @GET("pokemon")
     suspend fun getPokemonList(
-        @Query("limit") limit: Int = 151,
-        @Query("offset") offset: Int = 0
+        @Query("limit") limit: Int = 151, @Query("offset") offset: Int = 0
     ): PokemonListResponse
 
     @GET("pokemon/{id}")
