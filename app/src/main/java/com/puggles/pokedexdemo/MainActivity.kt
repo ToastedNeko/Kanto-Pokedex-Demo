@@ -1,5 +1,6 @@
 package com.puggles.pokedexdemo
 
+import android.R.attr.contentDescription
 import android.R.attr.onClick
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -53,8 +54,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 
 class MainActivity : ComponentActivity() {
@@ -247,11 +250,18 @@ fun PokemonItem(
         .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween) {
+        val placeholder = BitmapPainter(
+            ImageBitmap.imageResource(R.drawable.placeholder_pokeball),
+            filterQuality = FilterQuality.None
+        )
+
         coil.compose.AsyncImage(
             model = spriteUrl(pokemon.id, version),
             contentDescription = pokemon.name,
             modifier = Modifier.size(64.dp),
-            filterQuality = FilterQuality.None
+            filterQuality = FilterQuality.None,
+            placeholder = placeholder, // show placeholder while loading sprite
+            error = placeholder // show placeholder if not sprite loaded
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -297,3 +307,16 @@ fun PokeBallButton(
         filterQuality = FilterQuality.None
     )
 }
+
+//@Preview(showBackground = true)
+//@Composable
+//fun PokemonItemPreview() {
+//    PokedexDemoTheme {
+//        PokemonItem(
+//            pokemon = Pokemon(id = 25, name = "Pikachu", isCaught = true),
+//            version = GameVersion.YELLOW,
+//            onToggleCaught = { },
+//            onClick = { }
+//        )
+//    }
+//}
