@@ -25,12 +25,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AlertDialogDefaults.titleContentColor
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -109,8 +107,7 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
                             .clip(RoundedCornerShape(50))
                             .background(Color.White)
                             .clickable { viewModel.toggleCaught(pokemonId) }
-                            .padding(start = 14.dp, end = 6.dp))
-                    {
+                            .padding(start = 14.dp, end = 6.dp)) {
                         Text(
                             if (isCaught) "Caught" else "Catch",
                             fontWeight = FontWeight.Bold,
@@ -118,13 +115,13 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
                         )
 
                         Spacer(modifier = Modifier.width(6.dp))
-                            PokeBallButton(
-                                isCaught = isCaught,
-                                onClick = { viewModel.toggleCaught(pokemonId) },
-                                size = 24.dp,
-                                tapPadding = 4.dp
-                            )
-                        }
+                        PokeBallButton(
+                            isCaught = isCaught,
+                            onClick = { viewModel.toggleCaught(pokemonId) },
+                            size = 24.dp,
+                            tapPadding = 4.dp
+                        )
+                    }
                 },
 
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -132,7 +129,7 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
                     titleContentColor = onGameColor(currentVersion),
                     navigationIconContentColor = onGameColor(currentVersion),
                     actionIconContentColor = onGameColor(currentVersion)
-                    )
+                )
             )
 
             // scrolling content with the grid behind it
@@ -140,7 +137,7 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
                 modifier = Modifier
                     .fillMaxSize()
                     .gridBackground(gridColor)
-                    .verticalScroll(rememberScrollState())
+//                    .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -176,7 +173,7 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
                             .background(Color.White, RoundedCornerShape(4.dp))
                             .border(2.dp, Color.Black, RoundedCornerShape(4.dp))
                             .padding(4.dp)
-                            .size(120.dp),
+                            .size(160.dp),
                         filterQuality = FilterQuality.None
                     )
 
@@ -187,15 +184,10 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
 
                     // info box
                     DexBox {
-                        Column(
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text("Number: #${p.id.toString().padStart(3, '0')}")
-                            Text("Type: ${p.types.joinToString(" / ") { it.type.name.replaceFirstChar { c -> c.uppercase() } }}")
-                            Text("Height: ${feet}'$inches\"")
-                            Text("Weight: $pounds lbs")
-                        }
+                        Text("Number: #${p.id.toString().padStart(3, '0')}")
+                        Text("Type: ${p.types.joinToString(" / ") { it.type.name.replaceFirstChar { c -> c.uppercase() } }}")
+                        Text("Height: ${feet}'$inches\"")
+                        Text("Weight: $pounds lbs")
                     }
 
                     // stats box
@@ -211,7 +203,7 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(stat.stat.name.replaceFirstChar { it.uppercase() })
+                                Text(statLabel(stat.stat.name))
                                 Text("${stat.baseStat}")
                             }
                         }
@@ -272,4 +264,13 @@ fun Modifier.gridBackground(lineColor: Color, spacing: Dp = 24.dp): Modifier = t
         drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
         y += step
     }
+}
+
+// formatting for stats
+fun statLabel(apiName: String): String = if (apiName == "hp") {
+    "HP"
+} else {
+    apiName.split("-").joinToString(" ") { word ->
+            word.replaceFirstChar { it.uppercase() }
+        }
 }
