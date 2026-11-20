@@ -5,6 +5,7 @@
 
 package com.puggles.pokedexdemo
 
+import android.R.attr.end
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,10 +25,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialogDefaults.titleContentColor
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +38,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -76,25 +80,59 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
         val currentVersion = viewModel.currentVersion.collectAsState().value
         val gridColor =
             if (isSystemInDarkTheme()) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)
+        // match the caught or not caught state of each pokemon
+        val pokemon = viewModel.pokemonList.collectAsState().value.find { it.id == pokemonId }
 
-        // outer Column: the bar on top, the scrolling content below
         Column(modifier = Modifier.fillMaxSize()) {
 
-            // game colored bar, separate from the block below
             TopAppBar(
                 title = {
-                Text(
-                    "#${p.id.toString().padStart(3, '0')}", fontWeight = FontWeight.Bold
-                )
-            }, navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                }
-            }, colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = gameColor(currentVersion),
-                titleContentColor = onGameColor(currentVersion),
-                navigationIconContentColor = onGameColor(currentVersion)
-            )
+                    Text(
+                        "#${p.id.toString().padStart(3, '0')}", fontWeight = FontWeight.Bold
+                    )
+                },
+
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back"
+                        )
+                    }
+                },
+
+                actions = {
+                    val isCaught = pokemon?.isCaught == true
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Color.White)
+                            .clickable { viewModel.toggleCaught(pokemonId) }
+                            .padding(start = 14.dp, end = 6.dp))
+                    {
+                        Text(
+                            if (isCaught) "Caught" else "Catch",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+
+                        Spacer(modifier = Modifier.width(6.dp))
+                            PokeBallButton(
+                                isCaught = isCaught,
+                                onClick = { viewModel.toggleCaught(pokemonId) },
+                                size = 24.dp,
+                                tapPadding = 4.dp
+                            )
+                        }
+                },
+
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = gameColor(currentVersion),
+                    titleContentColor = onGameColor(currentVersion),
+                    navigationIconContentColor = onGameColor(currentVersion),
+                    actionIconContentColor = onGameColor(currentVersion)
+                    )
             )
 
             // scrolling content with the grid behind it
@@ -190,24 +228,6 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
                             Text(text = flavorText, fontSize = 16.sp)
                         }
                     }
-                }
-
-                // match the caught or not caught state of each pokemon
-                val pokemon =
-                    viewModel.pokemonList.collectAsState().value.find { it.id == pokemonId }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.clickable { viewModel.toggleCaught(pokemonId) }) {
-                    PokeBallButton(
-                        isCaught = pokemon?.isCaught == true,
-                        onClick = { viewModel.toggleCaught(pokemonId) },
-                        size = 30.dp
-                    )
-                    Text(
-                        if (pokemon?.isCaught == true) "Caught" else "Not caught",
-                        fontWeight = if (pokemon?.isCaught == true) FontWeight.Bold else FontWeight.Normal
-                    )
                 }
             }
         }
