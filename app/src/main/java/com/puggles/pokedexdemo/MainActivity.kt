@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                             val pokemonId =
                                 backStackEntry.arguments?.getString("pokemonId")?.toIntOrNull() ?: 1
                             PokemonDetailScreen(
-                                pokemonId = pokemonId, viewModel = viewModel
+                                pokemonId = pokemonId, viewModel = viewModel, onBack = {navController.popBackStack()}
                             )
                         }
                     }

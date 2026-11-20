@@ -26,7 +26,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -35,8 +42,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
+fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () -> Unit) {
     var detail by remember { mutableStateOf<PokemonDetailResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var flavorTextEntries by remember { mutableStateOf<List<FlavorTextEntry>>(emptyList()) }
@@ -66,117 +74,144 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
     } else if (detail != null) {
         val p = detail!!
         val currentVersion = viewModel.currentVersion.collectAsState().value
-        // ⬆️ NEW: light grid lines on a dark background, dark lines on a light background
-        val gridColor = if (isSystemInDarkTheme()) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)
+        val gridColor =
+            if (isSystemInDarkTheme()) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .gridBackground((gridColor))
-                .verticalScroll(rememberScrollState())
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+        // outer Column: the bar on top, the scrolling content below
+        Column(modifier = Modifier.fillMaxSize()) {
 
+            // game colored bar, separate from the block below
+            TopAppBar(
+                title = {
+                Text(
+                    "#${p.id.toString().padStart(3, '0')}", fontWeight = FontWeight.Bold
+                )
+            }, navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+            }, colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = gameColor(currentVersion),
+                titleContentColor = onGameColor(currentVersion),
+                navigationIconContentColor = onGameColor(currentVersion)
+            )
+            )
+
+            // scrolling content with the grid behind it
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(gameColor(currentVersion), RoundedCornerShape(8.dp))
-                    .padding(12.dp),
+                    .fillMaxSize()
+                    .gridBackground(gridColor)
+                    .verticalScroll(rememberScrollState())
+                    .navigationBarsPadding()
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
-                DexBox {
-                    Text(
-                        text = p.name.uppercase(),
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                // sprite for user selected game version
-                coil.compose.AsyncImage(
-                    model = spriteUrl(p.id, currentVersion),
-                    contentDescription = p.name,
+                // game colored block with all the boxes
+                Column(
                     modifier = Modifier
-                        .background(Color.White, RoundedCornerShape(4.dp))
-                        .border(2.dp, Color.Black, RoundedCornerShape(4.dp))
-                        .padding(4.dp)
-                        .size(120.dp),
+                        .fillMaxWidth()
+                        .background(gameColor(currentVersion), RoundedCornerShape(8.dp))
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
 
-                    filterQuality = FilterQuality.None
-                )
-
-                val totalInches = (p.height * 3.93701).toInt()
-                val feet = totalInches / 12
-                val inches = totalInches % 12
-                val pounds = kotlin.math.round(p.weight * 0.220462).toInt()
-
-                DexBox {
-                    Column(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text("Number: #${p.id.toString().padStart(3, '0')}")
-                        Text("Type: ${p.types.joinToString(" / ") { it.type.name.replaceFirstChar { c -> c.uppercase() } }}")
-                        Text("Height: ${feet}'$inches\"")
-                        Text("Weight: $pounds lbs")
+                    // name box
+                    DexBox {
+                        Text(
+                            text = p.name.uppercase(),
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
-                }
-                DexBox {
-                    Text(
-                        text = "Base Stats",
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+
+                    // sprite box
+                    coil.compose.AsyncImage(
+                        model = spriteUrl(p.id, currentVersion),
+                        contentDescription = p.name,
+                        modifier = Modifier
+                            .background(Color.White, RoundedCornerShape(4.dp))
+                            .border(2.dp, Color.Black, RoundedCornerShape(4.dp))
+                            .padding(4.dp)
+                            .size(120.dp),
+                        filterQuality = FilterQuality.None
                     )
-                    p.stats.forEach { stat ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+
+                    val totalInches = (p.height * 3.93701).toInt()
+                    val feet = totalInches / 12
+                    val inches = totalInches % 12
+                    val pounds = kotlin.math.round(p.weight * 0.220462).toInt()
+
+                    // info box
+                    DexBox {
+                        Column(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Text(stat.stat.name.replaceFirstChar { it.uppercase() })
-                            Text("${stat.baseStat}")
+                            Text("Number: #${p.id.toString().padStart(3, '0')}")
+                            Text("Type: ${p.types.joinToString(" / ") { it.type.name.replaceFirstChar { c -> c.uppercase() } }}")
+                            Text("Height: ${feet}'$inches\"")
+                            Text("Weight: $pounds lbs")
+                        }
+                    }
+
+                    // stats box
+                    DexBox {
+                        Text(
+                            text = "Base Stats",
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        p.stats.forEach { stat ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(stat.stat.name.replaceFirstChar { it.uppercase() })
+                                Text("${stat.baseStat}")
+                            }
+                        }
+                    }
+
+                    // description box
+                    val flavorText =
+                        flavorTextEntries.firstOrNull { it.language?.name == "en" }?.flavorText?.replace(
+                            "\n", " "
+                        )?.replace("\u000c", " ")
+
+                    if (!flavorText.isNullOrBlank()) {
+                        DexBox {
+                            Text(text = flavorText, fontSize = 16.sp)
                         }
                     }
                 }
-                val flavorText =
-                    flavorTextEntries.firstOrNull { it.language?.name == "en" }?.flavorText?.replace(
-                        "\n", " "
-                    )?.replace("\u000c", " ")
 
-                if (!flavorText.isNullOrBlank()) {
-                    //Spacer(modifier = Modifier.height(16.dp))
-                    DexBox {
-                        Text(text = flavorText, fontSize = 16.sp)
-                    }
+                // match the caught or not caught state of each pokemon
+                val pokemon =
+                    viewModel.pokemonList.collectAsState().value.find { it.id == pokemonId }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { viewModel.toggleCaught(pokemonId) }) {
+                    PokeBallButton(
+                        isCaught = pokemon?.isCaught == true,
+                        onClick = { viewModel.toggleCaught(pokemonId) },
+                        size = 30.dp
+                    )
+                    Text(
+                        if (pokemon?.isCaught == true) "Caught" else "Not caught",
+                        fontWeight = if (pokemon?.isCaught == true) FontWeight.Bold else FontWeight.Normal
+                    )
                 }
             }
-
-            // match the caught or not caught state of each pokemon
-//            Spacer(modifier = Modifier.height(24.dp))
-            val pokemon = viewModel.pokemonList.collectAsState().value.find { it.id == pokemonId }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.clickable { viewModel.toggleCaught(pokemonId) }) {
-                PokeBallButton(
-                    isCaught = pokemon?.isCaught == true,
-                    onClick = { viewModel.toggleCaught(pokemonId) },
-                    size = 30.dp
-                )
-                Text(
-                    if (pokemon?.isCaught == true) "Caught" else "Not caught",
-                    fontWeight = if (pokemon?.isCaught == true) FontWeight.Bold else FontWeight.Normal
-                )
-            }
         }
+
     } else {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Failed to load details")
@@ -200,22 +235,21 @@ fun DexBox(content: @Composable ColumnScope.() -> Unit) {
 }
 
 // add grid background for detail view of each Pokemon
-fun Modifier.gridBackground(lineColor: Color, spacing: Dp = 24.dp): Modifier =
-    this.drawBehind {
+fun Modifier.gridBackground(lineColor: Color, spacing: Dp = 24.dp): Modifier = this.drawBehind {
 
-        val step = spacing.toPx()
+    val step = spacing.toPx()
 
-        // vertical lines
-        var x = 0f
-        while (x < size.width) {
-            drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
-            x += step
-        }
-
-        // horizontal lines
-        var y = 0f
-        while (y < size.height) {
-            drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
-            y += step
-        }
+    // vertical lines
+    var x = 0f
+    while (x < size.width) {
+        drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
+        x += step
     }
+
+    // horizontal lines
+    var y = 0f
+    while (y < size.height) {
+        drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
+        y += step
+    }
+}
