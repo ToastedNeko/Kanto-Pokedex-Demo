@@ -8,6 +8,7 @@ package com.puggles.pokedexdemo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,12 +23,17 @@ import retrofit2.converter.gson.GsonConverterFactory
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 
 @Composable
 fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
@@ -60,10 +66,16 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
     } else if (detail != null) {
         val p = detail!!
         val currentVersion = viewModel.currentVersion.collectAsState().value
+        // ⬆️ NEW: light grid lines on a dark background, dark lines on a light background
+        val gridColor = if (isSystemInDarkTheme()) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .gridBackground((gridColor))
+                .verticalScroll(rememberScrollState())
                 .statusBarsPadding()
+                .navigationBarsPadding()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -96,7 +108,7 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
                         .background(Color.White, RoundedCornerShape(4.dp))
                         .border(2.dp, Color.Black, RoundedCornerShape(4.dp))
                         .padding(4.dp)
-                        .size(160.dp),
+                        .size(120.dp),
 
                     filterQuality = FilterQuality.None
                 )
@@ -134,20 +146,21 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel) {
                         }
                     }
                 }
-            }
+                val flavorText =
+                    flavorTextEntries.firstOrNull { it.language?.name == "en" }?.flavorText?.replace(
+                        "\n", " "
+                    )?.replace("\u000c", " ")
 
-            val flavorText =
-                flavorTextEntries.firstOrNull { it.language?.name == "en" }?.flavorText?.replace(
-                    "\n", " "
-                )?.replace("\u000c", " ")
-
-            if (!flavorText.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = flavorText, fontSize = 16.sp)
+                if (!flavorText.isNullOrBlank()) {
+                    //Spacer(modifier = Modifier.height(16.dp))
+                    DexBox {
+                        Text(text = flavorText, fontSize = 16.sp)
+                    }
+                }
             }
 
             // match the caught or not caught state of each pokemon
-            Spacer(modifier = Modifier.height(24.dp))
+//            Spacer(modifier = Modifier.height(24.dp))
             val pokemon = viewModel.pokemonList.collectAsState().value.find { it.id == pokemonId }
 
             Column(
@@ -185,3 +198,24 @@ fun DexBox(content: @Composable ColumnScope.() -> Unit) {
         )
     }
 }
+
+// add grid background for detail view of each Pokemon
+fun Modifier.gridBackground(lineColor: Color, spacing: Dp = 24.dp): Modifier =
+    this.drawBehind {
+
+        val step = spacing.toPx()
+
+        // vertical lines
+        var x = 0f
+        while (x < size.width) {
+            drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
+            x += step
+        }
+
+        // horizontal lines
+        var y = 0f
+        while (y < size.height) {
+            drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
+            y += step
+        }
+    }
