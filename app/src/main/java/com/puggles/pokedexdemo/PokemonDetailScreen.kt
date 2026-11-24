@@ -5,6 +5,7 @@
 
 package com.puggles.pokedexdemo
 
+import android.R.attr.scaleX
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -77,7 +79,8 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
         val p = detail!!
         val currentVersion = viewModel.currentVersion.collectAsState().value
         val gridColor =
-            if (isSystemInDarkTheme()) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)
+            if (isSystemInDarkTheme()) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.2f)
+
         // match the caught or not caught state of each pokemon
         val pokemon = viewModel.pokemonList.collectAsState().value.find { it.id == pokemonId }
 
@@ -174,7 +177,10 @@ fun PokemonDetailScreen(pokemonId: Int, viewModel: PokemonViewModel, onBack: () 
                             .background(Color.White, RoundedCornerShape(4.dp))
                             .border(2.dp, Color.Black, RoundedCornerShape(4.dp))
                             .padding(4.dp)
-                            .size(160.dp),
+                            .size(160.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .graphicsLayer(scaleX = 1.3f, scaleY = 1.3f),
+
                         filterQuality = FilterQuality.None
                     )
 
@@ -255,14 +261,14 @@ fun Modifier.gridBackground(lineColor: Color, spacing: Dp = 24.dp): Modifier = t
     // vertical lines
     var x = 0f
     while (x < size.width) {
-        drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
+        drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 3f)
         x += step
     }
 
     // horizontal lines
     var y = 0f
     while (y < size.height) {
-        drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
+        drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 3f)
         y += step
     }
 }
@@ -272,6 +278,6 @@ fun statLabel(apiName: String): String = if (apiName == "hp") {
     "HP"
 } else {
     apiName.split("-").joinToString(" ") { word ->
-            word.replaceFirstChar { it.uppercase() }
-        }
+        word.replaceFirstChar { it.uppercase() }
+    }
 }
