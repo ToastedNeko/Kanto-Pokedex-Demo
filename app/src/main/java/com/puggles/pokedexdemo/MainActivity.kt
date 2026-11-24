@@ -46,9 +46,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
@@ -175,6 +177,7 @@ fun PokemonListScreen(
                     })
                 }
             })
+        HorizontalDivider(thickness = 3.dp, color = Color.Black)
 
         Row(
             modifier = Modifier
@@ -212,6 +215,11 @@ fun PokemonListScreen(
                     version = currentVersion,
                     onToggleCaught = { viewModel.toggleCaught(pokemon.id) },
                     onClick = { onPokemonClick(pokemon.id) })
+
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
             }
         }
         if (showResetDialog) {
@@ -300,16 +308,3 @@ fun PokeBallButton(
 
         filterQuality = FilterQuality.None)
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun PokemonItemPreview() {
-//    PokedexDemoTheme {
-//        PokemonItem(
-//            pokemon = Pokemon(id = 25, name = "Pikachu", isCaught = true),
-//            version = GameVersion.YELLOW,
-//            onToggleCaught = { },
-//            onClick = { }
-//        )
-//    }
-//}
