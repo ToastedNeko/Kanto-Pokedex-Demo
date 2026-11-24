@@ -148,7 +148,7 @@ fun PokemonListScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Kanto Dex", fontWeight = FontWeight.Bold) },
+            title = { Text("KANTO DEX", fontWeight = FontWeight.Bold) },
 
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = gameColor(currentVersion),
