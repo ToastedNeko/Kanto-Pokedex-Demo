@@ -5,7 +5,6 @@
 
 package com.puggles.pokedexdemo
 
-import android.R.attr.scaleX
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable

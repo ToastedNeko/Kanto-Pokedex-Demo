@@ -57,8 +57,18 @@ data class FlavorLanguage(
     val name: String
 )
 
+data class TypeResponse(
+    val pokemon: List<TypePokemonEntry>
+)
+
+data class TypePokemonEntry(
+    val slot: Int,
+    val pokemon: PokemonResult
+)
+
 // flavor text (Pokedex description) comes from the species endpoint.
 // The regular /pokemon/{id} endpoint does not include it.
+// get the Pokemon's type(s) to display on list and in details
 interface PokemonApi {
     @GET("pokemon")
     suspend fun getPokemonList(
@@ -70,5 +80,8 @@ interface PokemonApi {
 
     @GET("pokemon-species/{id}")
     suspend fun getPokemonSpecies(@Path("id") id: Int): PokemonSpeciesResponse
+
+    @GET("type/{name}")
+    suspend fun getType(@Path("name") name: String): TypeResponse
 
 }

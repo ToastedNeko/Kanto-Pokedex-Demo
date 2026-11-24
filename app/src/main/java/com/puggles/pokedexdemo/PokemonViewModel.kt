@@ -31,6 +31,45 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
     private val api: PokemonApi = Retrofit.Builder().baseUrl("https://pokeapi.co/api/v2/")
         .addConverterFactory(GsonConverterFactory.create()).build().create(PokemonApi::class.java)
 
+    // types of pokemon for gen 1
+    private val gen1Types = listOf(
+        "normal", "fire", "water", "electric", "grass", "ice",
+        "fighting", "poison", "ground", "flying", "psychic",
+        "bug", "rock", "ghost", "dragon",
+    )
+
+    // types for each of the pokemon saved on loading them
+    private var typesById: Map<Int, List<String>> = emptyMap()
+
+    private suspend fun loadTypes() {
+        if (typesById.isNotEmpty()) return
+
+        // with the Pokemon's number map it to the types with
+        // slots (ie, slot 1 is grass, slot 2 poison)
+        val found = mutableMapOf<Int, MutableList<Pair<Int, String>>>()
+
+        // ask PokeAPI for Gen 1 type, one at a time
+        for (typeName in gen1Types) {
+            // go through every Pokemon with this type
+            val response = api.getType(typeName)
+            response.pokemon.forEach { entry ->
+                // get the Pokemon's number out of the url, ie "/pokemon/1/" would be 1
+                val id = entry.pokemon.url.trimEnd('/').substringAfterLast('/').toInt()
+
+                // keep only Gen 1 Pokemon types
+                if (id <= 151) {
+                    // add this type to the Pokemon's slot list, as a pair (1, "grass")
+                    // slots, 1st or 2nd, is kept so the types can be put in order later
+                    found.getOrPut(id) { mutableListOf() }.add(entry.slot to typeName)
+                }
+            }
+        }
+
+        // put Pokemon's types in order, then keep the type names
+        // ie, (2, "poison"), (1, "grass") becomes ["grass", "poison"]
+        typesById = found.mapValues { (_, list) -> list.sortedBy { it.first }.map { it.second } }
+    }
+
     init {
         loadPokemon()
     }
@@ -56,6 +95,15 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
                     )
                 }
                 _pokemonList.value = pokemon
+                // load Gen1 Pokemon types (grass, poison, etc.)
+                // give each Pokemon its type(s)
+                loadTypes()
+                _pokemonList.value = _pokemonList.value.map { p ->
+                    // use the Gen1 types, or "normal" if none were found
+                    // (only Clefairy and Clefable: they're Fairy now, which didn't exist in Gen1)
+                    p.copy(types = typesById[p.id] ?: listOf("normal"))
+                }
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -76,7 +124,7 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private val _exportResult = MutableStateFlow("")
+//    private val _exportResult = MutableStateFlow("")
 
     fun exportAllCaught(onExport: (String) -> Unit) {
         viewModelScope.launch {
